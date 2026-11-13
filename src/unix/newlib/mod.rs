@@ -208,9 +208,13 @@ s! {
         pub c_ospeed: u32,
     }
 
+    #[cfg_attr(target_os = "rtems", repr(align(4)))]
     pub struct sem_t {
         // Unverified
+        #[cfg(not(target_os = "rtems"))]
         __size: [c_char; 16],
+        #[cfg(target_os = "rtems")]
+        __size: [c_char; 28],
     }
 
     pub struct Dl_info {
@@ -233,9 +237,13 @@ s! {
 
     pub struct cpu_set_t {
         // Unverified
+        #[cfg(not(target_os = "rtems"))]
         bits: [u32; 32],
+        #[cfg(target_os = "rtems")]
+        bits: [c_ulong; 1],
     }
 
+    #[cfg_attr(target_os = "rtems", repr(align(8)))]
     pub struct pthread_attr_t {
         // Unverified
         #[cfg(not(target_os = "espidf"))]
@@ -258,6 +266,7 @@ s! {
         pub detachstate: i32,
     }
 
+    #[cfg_attr(target_os = "rtems", repr(align(4)))]
     pub struct pthread_rwlockattr_t {
         // Unverified
         __size: [u8; __SIZEOF_PTHREAD_RWLOCKATTR_T],
@@ -277,6 +286,7 @@ s! {
         ),
         repr(align(8))
     )]
+    #[cfg_attr(target_os = "rtems", repr(align(8)))]
     pub struct pthread_mutex_t {
         // Unverified
         size: [u8; crate::__SIZEOF_PTHREAD_MUTEX_T],
@@ -328,13 +338,15 @@ s! {
         size: [u8; crate::__SIZEOF_PTHREAD_MUTEXATTR_T],
     }
 
-    #[repr(align(8))]
+    #[cfg_attr(not(target_os = "rtems"), repr(align(8)))]
+    #[cfg_attr(target_os = "rtems", repr(align(4)))]
     pub struct pthread_cond_t {
         // Unverified
         size: [u8; crate::__SIZEOF_PTHREAD_COND_T],
     }
 
     #[repr(align(4))]
+    #[cfg_attr(target_os = "rtems", repr(align(8)))]
     pub struct pthread_condattr_t {
         // Unverified
         size: [u8; crate::__SIZEOF_PTHREAD_CONDATTR_T],
@@ -360,13 +372,20 @@ s! {
         pub st_ctim: crate::timespec,
         pub st_blksize: crate::blksize_t,
         pub st_blocks: crate::blkcnt_t,
+        #[cfg(not(target_os = "rtems"))]
         pub st_spare4: [c_long; 2usize],
     }
 
     #[cfg(not(target_os = "vita"))]
     pub struct dirent {
         pub d_ino: crate::ino_t,
+        #[cfg(target_os = "rtems")]
+        pub d_off: crate::off_t,
+        #[cfg(target_os = "rtems")]
+        pub d_reclen: c_ushort,
         pub d_type: c_uchar,
+        #[cfg(target_os = "rtems")]
+        pub d_namlen: c_ushort,
         pub d_name: [c_char; 256usize],
     }
 }
@@ -636,7 +655,10 @@ pub const AF_INET: c_int = 2;
 
 pub const CLOCK_REALTIME: crate::clockid_t = 1;
 pub const CLOCK_MONOTONIC: crate::clockid_t = 4;
+#[cfg(not(target_os = "rtems"))]
 pub const CLOCK_BOOTTIME: crate::clockid_t = 4;
+#[cfg(target_os = "rtems")]
+pub const CLOCK_BOOTTIME: crate::clockid_t = 7;
 
 pub const SOCK_STREAM: c_int = 1;
 pub const SOCK_DGRAM: c_int = 2;
